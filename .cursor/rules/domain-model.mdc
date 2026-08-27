@@ -1,0 +1,23 @@
+---
+description: Clubs/courts/games domain rules
+globs: src/features/clubs/**/*,src/features/courts/**/*,src/features/schedule/**/*
+alwaysApply: false
+---
+
+# Domain model
+
+## clubs
+`name`, `city`, `owner_user_id`, `timezone`, `slot_duration_minutes`, `first_slot_start`, `last_session_end`
+
+## courts
+`club_id`, `name`, `sort_order`, `environment` (`indoor`|`outdoor`), `is_active`
+
+## games (read-only in v1)
+`court_id`, `starts_at`, `ends_at`, `status`
+Blocking statuses for availability: `open`, `full`, `completed`
+
+## Rules
+- Times stored as HH:MM or HH:MM:SS; display as HH:MM
+- Deactivate courts with `is_active = false`, don't hard-delete if referenced
+- All writes must respect RLS (owner can only mutate their club's data)
+- Don't invent new columns without a migration note

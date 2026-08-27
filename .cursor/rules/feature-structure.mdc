@@ -1,0 +1,12 @@
+---
+description: Feature folder conventions (aligned with mobile app)
+globs: src/features/**/*
+alwaysApply: false
+---
+
+# Feature structure
+
+- Validation: Zod schemas in `src/validation/` or colocated `validation.ts`
+- UI in `src/components/<domain>/`, not inside `features/`
+- Forms: react-hook-form + zodResolver
+- Errors: surface Supabase message; no empty catch blocks
