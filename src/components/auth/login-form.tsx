@@ -1,17 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useActionState } from "react";
+import { useState } from "react";
 
-const CLUBS = ["Galaxio Club Madrid", "Galaxio Club Lisbon", "Galaxio Club Nice"];
+import { login, type LoginState } from "@/lib/auth/actions";
+
+const initialState: LoginState = { error: null };
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [clubEnabled, setClubEnabled] = useState(true);
-  const [club, setClub] = useState(CLUBS[0]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-  }
+  const [state, formAction, pending] = useActionState(login, initialState);
 
   return (
     <div>
@@ -24,49 +22,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <div className="rounded-2xl bg-field p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 text-sm font-medium text-foreground">
-              <BuildingIcon />
-              <span>Select Managed Club</span>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={clubEnabled}
-              aria-label="Enable club selection"
-              onClick={() => setClubEnabled((value) => !value)}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                clubEnabled ? "bg-brand-soft" : "bg-border"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${
-                  clubEnabled ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
-          <div className="relative">
-            <select
-              value={club}
-              disabled={!clubEnabled}
-              onChange={(event) => setClub(event.target.value)}
-              className="w-full appearance-none rounded-xl border border-border bg-panel px-4 py-3 pr-10 text-sm text-foreground outline-none transition focus:border-brand-soft disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {CLUBS.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
-              <ChevronIcon />
-            </span>
-          </div>
-        </div>
-
+      <form action={formAction} className="space-y-5" noValidate>
         <div>
           <label
             htmlFor="email"
@@ -83,6 +39,7 @@ export function LoginForm() {
               name="email"
               type="email"
               autoComplete="email"
+              required
               placeholder="manager@padelgalaxio.com"
               className="w-full rounded-xl border border-border bg-panel py-3 pr-4 pl-11 text-sm text-foreground outline-none transition placeholder:text-muted/70 focus:border-brand-soft"
             />
@@ -113,7 +70,7 @@ export function LoginForm() {
               name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              defaultValue="password"
+              required
               className="w-full rounded-xl border border-border bg-panel py-3 pr-11 pl-11 text-sm text-foreground outline-none transition focus:border-brand-soft"
             />
             <button
@@ -127,17 +84,29 @@ export function LoginForm() {
           </div>
         </div>
 
+        {state.error ? (
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+          >
+            {state.error}
+          </p>
+        ) : null}
+
         <button
           type="submit"
-          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          disabled={pending}
+          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Sign In to Dashboard
-          <span
-            aria-hidden
-            className="transition-transform group-hover:translate-x-0.5"
-          >
-            →
-          </span>
+          {pending ? "Signing in…" : "Sign In to Dashboard"}
+          {!pending ? (
+            <span
+              aria-hidden
+              className="transition-transform group-hover:translate-x-0.5"
+            >
+              →
+            </span>
+          ) : null}
         </button>
       </form>
 
@@ -148,24 +117,6 @@ export function LoginForm() {
         </a>
       </p>
     </div>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      aria-hidden
-    >
-      <path d="M4 21V9l8-5 8 5v12" />
-      <path d="M9 21v-6h6v6" />
-      <path d="M10 9h.01M14 9h.01M10 13h.01M14 13h.01" />
-    </svg>
   );
 }
 
@@ -235,22 +186,6 @@ function EyeOffIcon() {
       <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
       <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.4 18.4 0 0 1-2.2 3.1" />
       <path d="M6.1 6.1A18 18 0 0 0 2 12s3.5 7 10 7a10.4 10.4 0 0 0 4.2-.9" />
-    </svg>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden
-    >
-      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }

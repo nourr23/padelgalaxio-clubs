@@ -1,17 +1,17 @@
 ---
 description: Next.js App Router + Supabase patterns
-globs: app/**/*,lib/**/*,middleware.ts
+globs: app/**/*,lib/**/*,proxy.ts
 alwaysApply: false
 ---
 
 # Supabase in Next.js
 
-- Use `@supabase/ssr` with separate browser + server clients
-- Refresh session in `middleware.ts`
+- Use `@supabase/ssr` with separate browser + server clients (`lib/supabase/`)
+- Refresh session in `proxy.ts` (Next.js 16; formerly middleware)
 - Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` to client components
 - Protect `app/(dashboard)/**`; redirect unauthenticated users to `/login`
-- Gate dashboard: user must own a club OR be admin
+- Gate dashboard: `roles.role` in (`club`, `admin`); club owners via `clubs.owner_user_id`
 
 Prefer Server Components for initial fetch; client components for forms/interactions.
 Use React Query for client-side cache + mutations.
