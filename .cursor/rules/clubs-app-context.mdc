@@ -1,0 +1,16 @@
+---
+description: PadelGalaxio clubs web app context and scope
+alwaysApply: true
+---
+
+# PadelGalaxio Clubs App
+
+Web admin portal for padel **club owners** (not players/coaches).
+
+- Shares Supabase with the Expo app `players-coachs-app`
+- Club owner = `clubs.owner_user_id = auth.uid()`
+- Allowed roles: `roles.role` in (`club`, `admin`)
+- MVP scope: club settings, courts CRUD, read-only schedule
+- Out of scope unless asked: payments, multi-club SaaS, mobile UI parity
+
+Prefer small focused diffs. Match existing PadelGalaxio naming and data shapes.

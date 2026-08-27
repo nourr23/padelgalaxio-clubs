@@ -1,0 +1,10 @@
+---
+description: Scope boundary vs players-coachs-app mobile repo
+alwaysApply: true
+---
+
+# Repo scope
+
+This is the **club admin web app**. Club management features belong here.
+
+Do not add player/coach mobile app features here — those belong in `/Volumes/mySsd/repo/padelGalaxio/players-coachs-app/`.
