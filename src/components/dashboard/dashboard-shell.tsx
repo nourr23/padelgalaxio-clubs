@@ -10,7 +10,6 @@ import {
   IconCourts,
   IconDashboard,
   IconHelp,
-  IconPlayers,
   IconSearch,
   IconSettings,
 } from "@/src/components/dashboard/icons";
@@ -59,7 +58,7 @@ export function DashboardShell({
 
   return (
     <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
-      <aside className="flex flex-col border-b border-border bg-panel lg:min-h-dvh lg:border-r lg:border-b-0">
+      <aside className="flex flex-col border-b border-border bg-panel lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
         <div className="px-5 py-6">
           <p className="font-display text-lg font-semibold tracking-tight text-brand">
             Padel Galaxio
@@ -69,7 +68,7 @@ export function DashboardShell({
           </p>
         </div>
 
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:pb-0">
+        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:pb-0">
           {primaryNav.map((item) => {
             const active = isActive(pathname, item.href, item.match);
             const Icon = item.icon;
@@ -89,16 +88,9 @@ export function DashboardShell({
             );
           })}
 
-          <span
-            title="Coming soon"
-            className="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap text-muted/70"
-          >
-            <IconPlayers className="shrink-0" />
-            Players
-          </span>
         </nav>
 
-        <div className="mt-auto space-y-3 border-t border-border p-3">
+        <div className="mt-auto shrink-0 space-y-3 border-t border-border p-3">
           <Link
             href="/dashboard/settings"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${

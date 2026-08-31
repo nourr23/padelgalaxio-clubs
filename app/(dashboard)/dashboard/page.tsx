@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { assertClubsAppAccess } from "@/lib/auth/assert-clubs-access";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardLive } from "@/src/components/dashboard/dashboard-live";
+import { getDashboardData } from "@/src/features/dashboard/queries";
+import { getWeatherForCity } from "@/src/features/dashboard/weather";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -16,33 +18,33 @@ export default async function DashboardPage() {
     return null;
   }
 
-  return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="font-display text-4xl font-semibold tracking-tight text-brand">
-        Dashboard.
-      </h1>
-      <p className="mt-2 text-[15px] text-muted">
-        {access.club
-          ? `Managing ${access.club.name}${access.club.city ? ` · ${access.club.city}` : ""}.`
-          : access.role === "admin"
-            ? "Signed in as admin."
-            : "No club is linked to this account yet."}
-      </p>
+  const metaName =
+    typeof access.user.user_metadata?.full_name === "string"
+      ? access.user.user_metadata.full_name
+      : typeof access.user.user_metadata?.name === "string"
+        ? access.user.user_metadata.name
+        : null;
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        <Link
-          href="/dashboard/settings"
-          className="rounded-2xl border border-border bg-panel px-5 py-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-        >
-          Club settings →
-        </Link>
-        <Link
-          href="/dashboard/courts"
-          className="rounded-2xl border border-border bg-panel px-5 py-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-        >
-          Courts →
-        </Link>
-      </div>
-    </div>
+  const displayName =
+    metaName?.trim() ||
+    access.user.email?.split("@")[0] ||
+    "Club manager";
+
+  const clubCity = access.club?.city ?? null;
+
+  const [dashboardData, weather] = await Promise.all([
+    getDashboardData(supabase, access.club?.id ?? null),
+    getWeatherForCity(clubCity),
+  ]);
+
+  return (
+    <DashboardLive
+      clubId={access.club?.id ?? null}
+      initialData={dashboardData}
+      displayName={displayName}
+      clubName={access.club?.name ?? null}
+      clubCity={clubCity}
+      weather={weather}
+    />
   );
 }
