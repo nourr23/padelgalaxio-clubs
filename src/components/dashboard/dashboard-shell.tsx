@@ -10,7 +10,6 @@ import {
   IconCourts,
   IconDashboard,
   IconHelp,
-  IconPlayers,
   IconSearch,
   IconSettings,
 } from "@/src/components/dashboard/icons";
@@ -89,13 +88,6 @@ export function DashboardShell({
             );
           })}
 
-          <span
-            title="Coming soon"
-            className="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap text-muted/70"
-          >
-            <IconPlayers className="shrink-0" />
-            Players
-          </span>
         </nav>
 
         <div className="mt-auto shrink-0 space-y-3 border-t border-border p-3">
