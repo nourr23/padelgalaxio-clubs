@@ -2,8 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   getDaySlotStartsForClub,
+  monthRangeIso,
   rangesOverlap,
   slotBounds,
+  toYmd,
   type SlotDef,
 } from "@/src/features/schedule/slots";
 import type { Club, Database, GameStatus } from "@/src/types/database";
@@ -242,6 +244,39 @@ export async function getScheduleForDate(
       maintenanceSlots,
     },
   };
+}
+
+export async function getMonthBookingCounts(
+  supabase: SupabaseClient<Database>,
+  clubId: string,
+  year: number,
+  month: number,
+) {
+  const { data: courts } = await supabase
+    .from("courts")
+    .select("id")
+    .eq("club_id", clubId);
+
+  if (!courts?.length) return {} as Record<string, number>;
+
+  const courtIds = courts.map((court) => court.id);
+  const { startIso, endIso } = monthRangeIso(year, month);
+
+  const { data: games } = await supabase
+    .from("games")
+    .select("starts_at")
+    .in("court_id", courtIds)
+    .gte("starts_at", startIso)
+    .lte("starts_at", endIso)
+    .not("status", "eq", "cancelled");
+
+  const counts: Record<string, number> = {};
+  for (const game of games ?? []) {
+    const ymd = toYmd(new Date(game.starts_at));
+    counts[ymd] = (counts[ymd] ?? 0) + 1;
+  }
+
+  return counts;
 }
 
 export async function getWeekSummaries(

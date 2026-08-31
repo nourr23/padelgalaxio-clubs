@@ -138,3 +138,60 @@ export function getWeekDates(ymd: string) {
     return toYmd(next);
   });
 }
+
+export type MonthDay = {
+  ymd: string;
+  inMonth: boolean;
+};
+
+export function getMonthParts(ymd: string) {
+  const date = parseYmd(ymd);
+  if (!date) {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  }
+  return { year: date.getFullYear(), month: date.getMonth() };
+}
+
+export function toMonthKey(year: number, month: number) {
+  return `${year}-${pad2(month + 1)}`;
+}
+
+export function addMonths(year: number, month: number, delta: number) {
+  const date = new Date(year, month + delta, 1);
+  return { year: date.getFullYear(), month: date.getMonth() };
+}
+
+export function getMonthGrid(year: number, month: number): MonthDay[] {
+  const firstOfMonth = new Date(year, month, 1);
+  const day = firstOfMonth.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const start = new Date(firstOfMonth);
+  start.setDate(firstOfMonth.getDate() + mondayOffset);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return {
+      ymd: toYmd(date),
+      inMonth: date.getMonth() === month,
+    };
+  });
+}
+
+export function formatMonthYear(year: number, month: number) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month, 1));
+}
+
+export function isToday(ymd: string) {
+  return ymd === toYmd(new Date());
+}
+
+export function monthRangeIso(year: number, month: number) {
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+  return { startIso: start.toISOString(), endIso: end.toISOString() };
+}

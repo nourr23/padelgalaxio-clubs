@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import { ScheduleDatePicker } from "@/src/components/schedule/schedule-date-picker";
 import {
   getScheduleForDate,
   getWeekSummaries,
@@ -37,6 +38,7 @@ export function ScheduleCalendar({
   const [weekSummaries, setWeekSummaries] = useState<Record<string, number>>(
     {},
   );
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const weekDates = getWeekDates(ymd);
@@ -113,7 +115,7 @@ export function ScheduleCalendar({
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
+      <div className="relative mb-6 flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
           onClick={() => shiftDate(view === "day" ? -1 : -7)}
@@ -123,12 +125,37 @@ export function ScheduleCalendar({
           <IconChevron direction="left" />
         </button>
 
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setPickerOpen((open) => !open)}
+            className="min-w-[220px] rounded-xl bg-field px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-border/60"
+            aria-expanded={pickerOpen}
+            aria-haspopup="dialog"
+          >
+            {view === "day"
+              ? formatDisplayDate(ymd)
+              : `Week of ${formatShortDay(weekDates[0] ?? ymd)}`}
+          </button>
+
+          <ScheduleDatePicker
+            clubId={club.id}
+            selectedYmd={ymd}
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            onSelect={(nextYmd) => {
+              setYmd(nextYmd);
+              if (view === "week") setView("day");
+            }}
+          />
+        </div>
+
         <button
           type="button"
           onClick={goToday}
-          className="min-w-[220px] rounded-xl bg-field px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-border/60"
+          className="rounded-xl border border-border bg-panel px-3 py-2 text-xs font-semibold text-brand transition hover:bg-field"
         >
-          {view === "day" ? formatDisplayDate(ymd) : `Week of ${formatShortDay(weekDates[0] ?? ymd)}`}
+          Today
         </button>
 
         <button
