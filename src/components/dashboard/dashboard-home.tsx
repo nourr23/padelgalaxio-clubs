@@ -2,15 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type {
+  ActivityItem,
   DashboardStats,
   UpcomingSession,
 } from "@/src/features/dashboard/queries";
+import type { WeatherInfo } from "@/src/features/dashboard/weather";
 
 type DashboardHomeProps = {
   displayName: string;
   clubName: string | null;
+  clubCity: string | null;
   stats: DashboardStats;
   upcomingSessions: UpcomingSession[];
+  weather: WeatherInfo;
+  recentActivity: ActivityItem[];
+  inactiveCourtCount: number;
 };
 
 function getGreeting() {
@@ -154,8 +160,12 @@ function StatusDot({ status }: { status: "ready" | "pending" }) {
 export function DashboardHome({
   displayName,
   clubName,
+  clubCity,
   stats,
   upcomingSessions,
+  weather,
+  recentActivity,
+  inactiveCourtCount,
 }: DashboardHomeProps) {
   const greeting = getGreeting();
 
@@ -363,21 +373,47 @@ export function DashboardHome({
 
           {/* Weather & maintenance */}
           <div className="rounded-2xl bg-brand p-5 text-white shadow-sm">
-            <div className="flex items-center gap-2">
-              <SunIcon />
-              <span className="text-2xl font-semibold">24°C</span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-white/90">
-              Perfect conditions. High visibility and low humidity — optimal for
-              court play today.
-            </p>
-            <button
-              type="button"
-              disabled
-              className="mt-3 text-sm font-medium text-white/80 underline underline-offset-2 opacity-70"
-            >
-              Check Maintenance Schedule
-            </button>
+            {weather ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <WeatherIcon condition={weather.condition} />
+                  <span className="text-2xl font-semibold">
+                    {weather.temperatureC}°C
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-white/90">
+                  {weather.description}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <SunIcon />
+                  <span className="text-lg font-semibold">Weather unavailable</span>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-white/90">
+                  {clubCity
+                    ? "Could not load weather for your club location right now."
+                    : "Add your club city in Settings to see local weather."}
+                </p>
+              </>
+            )}
+            {inactiveCourtCount > 0 ? (
+              <Link
+                href="/dashboard/courts"
+                className="mt-3 inline-block text-sm font-medium text-white/90 underline underline-offset-2 transition hover:text-white"
+              >
+                {inactiveCourtCount} court{inactiveCourtCount !== 1 ? "s" : ""}{" "}
+                need attention
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard/courts"
+                className="mt-3 inline-block text-sm font-medium text-white/80 underline underline-offset-2 transition hover:text-white"
+              >
+                Manage courts
+              </Link>
+            )}
           </div>
 
           {/* Latest activity */}
@@ -385,20 +421,17 @@ export function DashboardHome({
             <h2 className="text-[11px] font-bold tracking-wider text-muted uppercase">
               Latest Activity
             </h2>
-            <ul className="mt-4 space-y-4">
-              <ActivityItem
-                dotColor="bg-accent"
-                title="Payment Confirmed"
-                detail="Booking #8842 · Court #02"
-                time="2 mins ago"
-              />
-              <ActivityItem
-                dotColor="bg-amber-400"
-                title="Maintenance Alert"
-                detail="Court #04 net tension check"
-                time="15 mins ago"
-              />
-            </ul>
+            {recentActivity.length > 0 ? (
+              <ul className="mt-4 space-y-4">
+                {recentActivity.map((item) => (
+                  <ActivityItem key={item.id} item={item} />
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-muted">
+                No recent bookings or court updates yet.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -406,29 +439,40 @@ export function DashboardHome({
   );
 }
 
-function ActivityItem({
-  dotColor,
-  title,
-  detail,
-  time,
-}: {
-  dotColor: string;
-  title: string;
-  detail: string;
-  time: string;
-}) {
+function ActivityItem({ item }: { item: ActivityItem }) {
+  const dotColor = {
+    success: "bg-accent",
+    warning: "bg-amber-400",
+    info: "bg-sky-400",
+    muted: "bg-border",
+  }[item.variant];
+
   return (
     <li className="flex gap-3">
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${dotColor}`} />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="text-xs text-muted">{detail}</p>
+        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+        <p className="text-xs text-muted">{item.detail}</p>
       </div>
       <span className="shrink-0 text-[10px] font-semibold tracking-wider text-muted uppercase">
-        {time}
+        {item.timeLabel}
       </span>
     </li>
   );
+}
+
+function WeatherIcon({
+  condition,
+}: {
+  condition: NonNullable<WeatherInfo>["condition"];
+}) {
+  if (condition === "rain" || condition === "storm") {
+    return <RainIcon />;
+  }
+  if (condition === "cloudy" || condition === "fog") {
+    return <CloudIcon />;
+  }
+  return <SunIcon />;
 }
 
 function SunIcon() {
@@ -444,6 +488,39 @@ function SunIcon() {
     >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function CloudIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden
+    >
+      <path d="M7 18h10a4 4 0 0 0 0-8 5 5 0 0 0-9.5-1.5A3.5 3.5 0 0 0 7 18Z" />
+    </svg>
+  );
+}
+
+function RainIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden
+    >
+      <path d="M7 15h10a4 4 0 0 0 0-8 5 5 0 0 0-9.5-1.5A3.5 3.5 0 0 0 7 15Z" />
+      <path d="M9 19v2M12 18v3M15 19v2" />
     </svg>
   );
 }
