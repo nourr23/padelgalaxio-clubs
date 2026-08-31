@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { assertClubsAppAccess } from "@/lib/auth/assert-clubs-access";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHome } from "@/src/components/dashboard/dashboard-home";
+import { DashboardLive } from "@/src/components/dashboard/dashboard-live";
 import { getDashboardData } from "@/src/features/dashboard/queries";
 import { getWeatherForCity } from "@/src/features/dashboard/weather";
 
@@ -38,15 +38,13 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <DashboardHome
+    <DashboardLive
+      clubId={access.club?.id ?? null}
+      initialData={dashboardData}
       displayName={displayName}
       clubName={access.club?.name ?? null}
       clubCity={clubCity}
-      stats={dashboardData.stats}
-      upcomingSessions={dashboardData.upcomingSessions}
       weather={weather}
-      recentActivity={dashboardData.recentActivity}
-      inactiveCourtCount={dashboardData.inactiveCourtCount}
     />
   );
 }

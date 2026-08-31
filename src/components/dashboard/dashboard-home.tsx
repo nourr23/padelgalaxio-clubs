@@ -17,6 +17,7 @@ type DashboardHomeProps = {
   weather: WeatherInfo;
   recentActivity: ActivityItem[];
   inactiveCourtCount: number;
+  isLive?: boolean;
 };
 
 function getGreeting() {
@@ -166,6 +167,7 @@ export function DashboardHome({
   weather,
   recentActivity,
   inactiveCourtCount,
+  isLive = false,
 }: DashboardHomeProps) {
   const greeting = getGreeting();
 
@@ -198,7 +200,7 @@ export function DashboardHome({
       {/* Metrics */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
-          badge="Live"
+          badge={isLive ? "Live" : "Syncing"}
           badgeVariant="live"
           label="Today's Occupancy"
           value={`${stats.occupancyPercent}%`}

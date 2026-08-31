@@ -36,6 +36,7 @@ export type DashboardData = {
   upcomingSessions: UpcomingSession[];
   recentActivity: ActivityItem[];
   inactiveCourtCount: number;
+  courtIds: string[];
 };
 
 function startOfDay(date: Date) {
@@ -216,6 +217,7 @@ export async function getDashboardData(
     upcomingSessions: [],
     recentActivity: [],
     inactiveCourtCount: 0,
+    courtIds: [],
   };
 
   if (!clubId) return empty;
@@ -349,5 +351,6 @@ export async function getDashboardData(
     upcomingSessions,
     recentActivity,
     inactiveCourtCount,
+    courtIds,
   };
 }
