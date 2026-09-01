@@ -10,7 +10,7 @@ import {
   IconCourts,
   IconDashboard,
   IconHelp,
-  IconSearch,
+  IconHistory,
   IconSettings,
 } from "@/src/components/dashboard/icons";
 
@@ -29,6 +29,12 @@ const primaryNav = [
     href: "/dashboard/schedule",
     label: "Calendar",
     icon: IconCalendar,
+    match: "prefix" as const,
+  },
+  {
+    href: "/dashboard/history",
+    label: "History",
+    icon: IconHistory,
     match: "prefix" as const,
   },
 ] as const;
@@ -58,12 +64,12 @@ export function DashboardShell({
 
   return (
     <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
-      <aside className="flex flex-col border-b border-border bg-panel lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
+      <aside className="flex flex-col bg-brand text-white lg:sticky lg:top-0 lg:h-dvh">
         <div className="px-5 py-6">
-          <p className="font-display text-lg font-semibold tracking-tight text-brand">
+          <p className="font-display text-lg font-semibold tracking-tight text-white">
             Padel Galaxio
           </p>
-          <p className="mt-0.5 text-[10px] font-semibold tracking-[0.18em] text-muted uppercase">
+          <p className="mt-0.5 text-[10px] font-semibold tracking-[0.18em] text-white/55 uppercase">
             Club Management
           </p>
         </div>
@@ -78,8 +84,8 @@ export function DashboardShell({
                 href={item.href}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition ${
                   active
-                    ? "bg-brand text-white"
-                    : "text-foreground/80 hover:bg-field hover:text-foreground"
+                    ? "bg-white/12 text-white"
+                    : "text-white/70 hover:bg-white/8 hover:text-white"
                 }`}
               >
                 <Icon className="shrink-0 opacity-90" />
@@ -87,39 +93,47 @@ export function DashboardShell({
               </Link>
             );
           })}
-
         </nav>
 
-        <div className="mt-auto shrink-0 space-y-3 border-t border-border p-3">
+        <div className="mt-auto shrink-0 space-y-2 border-t border-white/10 p-3">
           <Link
             href="/dashboard/settings"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
               settingsActive
-                ? "bg-brand text-white"
-                : "text-foreground/80 hover:bg-field hover:text-foreground"
+                ? "bg-white/12 text-white"
+                : "text-white/70 hover:bg-white/8 hover:text-white"
             }`}
           >
             <IconSettings className="shrink-0 opacity-90" />
             Settings
           </Link>
 
-          <div className="flex items-center gap-3 rounded-xl bg-field px-3 py-2.5">
+          <button
+            type="button"
+            disabled
+            className="flex w-full items-center justify-center rounded-xl bg-accent px-3 py-2.5 text-sm font-semibold text-brand opacity-80"
+            title="Coming soon"
+          >
+            + New Booking
+          </button>
+
+          <div className="flex items-center gap-3 rounded-xl bg-white/8 px-3 py-2.5">
             <span
               aria-hidden
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-brand"
             >
               {initials || "PG"}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">
+              <p className="truncate text-sm font-semibold text-white">
                 {displayName}
               </p>
-              <p className="truncate text-xs text-muted">{roleLabel}</p>
+              <p className="truncate text-xs text-white/55">{roleLabel}</p>
             </div>
             <form action={logout}>
               <button
                 type="submit"
-                className="rounded-lg px-2 py-1 text-xs font-medium text-muted transition hover:text-brand"
+                className="rounded-lg px-2 py-1 text-xs font-medium text-white/55 transition hover:text-white"
                 title={`Sign out (${email})`}
               >
                 Out
@@ -127,52 +141,36 @@ export function DashboardShell({
             </form>
           </div>
           {clubName ? (
-            <p className="px-1 text-[11px] text-muted lg:hidden">{clubName}</p>
+            <p className="px-1 text-[11px] text-white/45 lg:hidden">{clubName}</p>
           ) : null}
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="flex flex-wrap items-center gap-3 border-b border-border bg-panel px-4 py-3 sm:px-6 lg:px-8">
-          <label className="relative min-w-0 flex-1">
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted">
-              <IconSearch />
-            </span>
-            <input
-              type="search"
-              disabled
-              placeholder="Search players or bookings..."
-              className="w-full rounded-xl border-0 bg-field py-2.5 pr-3 pl-10 text-sm text-foreground outline-none placeholder:text-muted disabled:cursor-not-allowed"
-              aria-label="Search (coming soon)"
-            />
-          </label>
-
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              type="button"
-              disabled
-              className="rounded-xl p-2.5 text-muted transition hover:bg-field disabled:opacity-60"
-              aria-label="Notifications (coming soon)"
-            >
-              <IconBell />
-            </button>
-            <button
-              type="button"
-              disabled
-              className="rounded-xl p-2.5 text-muted transition hover:bg-field disabled:opacity-60"
-              aria-label="Help (coming soon)"
-            >
-              <IconHelp />
-            </button>
-            <button
-              type="button"
-              disabled
-              className="ml-1 rounded-xl bg-brand px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap text-white opacity-70 sm:ml-2"
-              title="Coming soon"
-            >
-              + New Booking
-            </button>
-          </div>
+        <header className="flex items-center justify-end gap-1 border-b border-border bg-panel px-4 py-3 sm:gap-2 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            disabled
+            className="rounded-xl p-2.5 text-muted transition hover:bg-field disabled:opacity-60"
+            aria-label="Notifications (coming soon)"
+          >
+            <IconBell />
+          </button>
+          <button
+            type="button"
+            disabled
+            className="rounded-xl p-2.5 text-muted transition hover:bg-field disabled:opacity-60"
+            aria-label="Help (coming soon)"
+          >
+            <IconHelp />
+          </button>
+          <span
+            aria-hidden
+            className="ml-1 flex size-9 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white sm:ml-2"
+            title={displayName}
+          >
+            {initials || "PG"}
+          </span>
         </header>
 
         <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
