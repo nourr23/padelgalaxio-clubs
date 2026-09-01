@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { ScheduleDatePicker } from "@/src/components/schedule/schedule-date-picker";
@@ -41,7 +41,6 @@ export function ScheduleCalendar({
     {},
   );
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
 
   const courtIds = useMemo(
     () => data.courts.map((court) => court.id),
@@ -59,9 +58,12 @@ export function ScheduleCalendar({
   const slotDuration = club.slot_duration_minutes ?? 90;
 
   useEffect(() => {
-    startTransition(async () => {
+    let cancelled = false;
+
+    void (async () => {
       const supabase = createClient();
       const next = await getScheduleForDate(supabase, club, ymd);
+      if (cancelled) return;
       setData(next);
 
       if (view === "week") {
@@ -70,9 +72,14 @@ export function ScheduleCalendar({
           club,
           getWeekDates(ymd),
         );
+        if (cancelled) return;
         setWeekSummaries(summaries);
       }
-    });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [club, view, ymd, weekDatesKey, refreshKey]);
 
   function shiftDate(days: number) {
@@ -191,10 +198,6 @@ export function ScheduleCalendar({
         >
           <IconChevron direction="right" />
         </button>
-
-        {pending ? (
-          <span className="text-xs font-medium text-muted">Updating…</span>
-        ) : null}
       </div>
 
       {view === "day" ? (

@@ -53,6 +53,11 @@ export function NotificationsBell({
 
   useEffect(() => {
     if (!open) return;
+    void refresh();
+  }, [open, refresh]);
+
+  useEffect(() => {
+    if (!open) return;
 
     function handlePointerDown(event: MouseEvent) {
       if (!panelRef.current?.contains(event.target as Node)) {
