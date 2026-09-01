@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -47,6 +48,11 @@ export function ScheduleCalendar({
     [data.courts],
   );
   const { refreshKey, isLive } = useScheduleRealtime(club.id, courtIds);
+
+  useEffect(() => {
+    setYmd(initialYmd);
+    setData(initialData);
+  }, [initialYmd, initialData]);
 
   const weekDates = getWeekDates(ymd);
   const weekDatesKey = weekDates.join(",");
@@ -192,7 +198,7 @@ export function ScheduleCalendar({
       </div>
 
       {view === "day" ? (
-        <DayGrid data={data} />
+        <DayGrid ymd={ymd} data={data} />
       ) : (
         <WeekGrid
           weekDates={weekDates}
@@ -233,7 +239,7 @@ export function ScheduleCalendar({
   );
 }
 
-function DayGrid({ data }: { data: ScheduleDayData }) {
+function DayGrid({ ymd, data }: { ymd: string; data: ScheduleDayData }) {
   if (!data.courts.length) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-panel px-6 py-16 text-center">
@@ -269,6 +275,7 @@ function DayGrid({ data }: { data: ScheduleDayData }) {
         {data.slots.map((slot) => (
           <SlotRow
             key={slot.start}
+            ymd={ymd}
             slot={slot}
             courts={data.courts}
             cells={data.cells}
@@ -280,10 +287,12 @@ function DayGrid({ data }: { data: ScheduleDayData }) {
 }
 
 function SlotRow({
+  ymd,
   slot,
   courts,
   cells,
 }: {
+  ymd: string;
   slot: ScheduleDayData["slots"][number];
   courts: ScheduleDayData["courts"];
   cells: ScheduleDayData["cells"];
@@ -317,7 +326,10 @@ function SlotRow({
               key={`${court.id}-${slot.start}`}
               className="border-b border-r border-border p-2 last:border-r-0"
             >
-              <div className="flex h-full min-h-[72px] flex-col justify-between rounded-xl bg-brand p-3 text-white shadow-sm">
+              <Link
+                href={`/dashboard/schedule/${cell.game.id}?from=${ymd}`}
+                className="flex h-full min-h-[72px] flex-col justify-between rounded-xl bg-brand p-3 text-white shadow-sm transition hover:bg-brand-deep"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-semibold">{cell.game.hostName}</p>
                   {cell.game.isEvent ? (
@@ -327,8 +339,10 @@ function SlotRow({
                   ) : null}
                 </div>
                 <p className="text-xs text-white/80">{cell.game.subtitle}</p>
-                <p className="text-[11px] text-white/70">{cell.game.playersLabel}</p>
-              </div>
+                <p className="text-[11px] text-white/70">
+                  {cell.game.playersLabel}
+                </p>
+              </Link>
             </div>
           );
         }

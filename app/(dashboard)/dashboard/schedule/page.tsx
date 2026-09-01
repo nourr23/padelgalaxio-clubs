@@ -5,13 +5,18 @@ import { assertClubsAppAccess } from "@/lib/auth/assert-clubs-access";
 import { createClient } from "@/lib/supabase/server";
 import { ScheduleCalendar } from "@/src/components/schedule/schedule-calendar";
 import { getScheduleForDate } from "@/src/features/schedule/queries";
-import { toYmd } from "@/src/features/schedule/slots";
+import { parseYmd, toYmd } from "@/src/features/schedule/slots";
 
 export const metadata: Metadata = {
   title: "Calendar",
 };
 
-export default async function SchedulePage() {
+type SchedulePageProps = {
+  searchParams: Promise<{ date?: string }>;
+};
+
+export default async function SchedulePage({ searchParams }: SchedulePageProps) {
+  const { date } = await searchParams;
   const supabase = await createClient();
   const access = await assertClubsAppAccess(supabase);
 
@@ -31,6 +36,7 @@ export default async function SchedulePage() {
   }
 
   const today = toYmd(new Date());
+  const initialYmd = date && parseYmd(date) ? date : today;
 
   if (!club) {
     return (
@@ -51,9 +57,13 @@ export default async function SchedulePage() {
     );
   }
 
-  const initialData = await getScheduleForDate(supabase, club, today);
+  const initialData = await getScheduleForDate(supabase, club, initialYmd);
 
   return (
-    <ScheduleCalendar club={club} initialYmd={today} initialData={initialData} />
+    <ScheduleCalendar
+      club={club}
+      initialYmd={initialYmd}
+      initialData={initialData}
+    />
   );
 }
