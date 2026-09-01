@@ -10,7 +10,12 @@ export const metadata: Metadata = {
   title: "History & Statistics",
 };
 
-export default async function HistoryPage() {
+type HistoryPageProps = {
+  searchParams: Promise<{ month?: string }>;
+};
+
+export default async function HistoryPage({ searchParams }: HistoryPageProps) {
+  const { month } = await searchParams;
   const supabase = await createClient();
   const access = await assertClubsAppAccess(supabase);
 
@@ -57,7 +62,7 @@ export default async function HistoryPage() {
     );
   }
 
-  const data = await getHistoryData(supabase, club);
+  const data = await getHistoryData(supabase, club, month);
 
   return <HistoryView data={data} />;
 }

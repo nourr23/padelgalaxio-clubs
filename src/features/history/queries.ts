@@ -1,10 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
-  addDays,
+  addMonths,
+  formatMonthYear,
   getDaySlotStartsForClub,
   rangesOverlap,
   slotBounds,
+  toMonthKey,
   toYmd,
   type SlotDef,
 } from "@/src/features/schedule/slots";
@@ -12,10 +14,11 @@ import type { Club, Database, GameStatus } from "@/src/types/database";
 
 export type HistoryStats = {
   avgOccupancyPercent: number;
-  occupancyTrend: number | null;
+  prevAvgOccupancyPercent: number | null;
+  occupancyChangePoints: number | null;
   topCourtName: string | null;
   topCourtSubtitle: string | null;
-  totalBookingsThisMonth: number;
+  totalBookings: number;
 };
 
 export type OccupancyTrendPoint = {
@@ -35,6 +38,10 @@ export type BookingHistoryRow = {
 };
 
 export type HistoryData = {
+  monthKey: string;
+  monthLabel: string;
+  prevMonthKey: string | null;
+  nextMonthKey: string | null;
   stats: HistoryStats;
   occupancyTrend: OccupancyTrendPoint[];
   bookings: BookingHistoryRow[];
@@ -67,6 +74,67 @@ function startOfMonth(date: Date) {
 
 function endOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function parseMonthKey(monthKey: string | undefined) {
+  if (!monthKey) return null;
+  const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 0 || month > 11) {
+    return null;
+  }
+  return { year, month };
+}
+
+function resolveSelectedMonth(monthKey?: string) {
+  const now = new Date();
+  const parsed = parseMonthKey(monthKey);
+  if (!parsed) {
+    return {
+      year: now.getFullYear(),
+      month: now.getMonth(),
+    };
+  }
+  return parsed;
+}
+
+function monthNavigationKeys(year: number, month: number) {
+  const now = new Date();
+  const currentKey = toMonthKey(now.getFullYear(), now.getMonth());
+  const selectedKey = toMonthKey(year, month);
+  const prev = addMonths(year, month, -1);
+  const next = addMonths(year, month, 1);
+  const nextKey = toMonthKey(next.year, next.month);
+
+  return {
+    monthKey: selectedKey,
+    monthLabel: formatMonthYear(year, month),
+    prevMonthKey: toMonthKey(prev.year, prev.month),
+    nextMonthKey: nextKey <= currentKey ? nextKey : null,
+  };
+}
+
+function daysInMonth(year: number, month: number) {
+  const days: string[] = [];
+  const cursor = new Date(year, month, 1);
+  const end = endOfMonth(cursor);
+  while (cursor <= end) {
+    days.push(toYmd(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return days;
+}
+
+export function getChartLabelIndexes(dayCount: number) {
+  if (dayCount <= 1) return [0];
+  const indexes = new Set([0, dayCount - 1]);
+  const step = Math.max(1, Math.round(dayCount / 5));
+  for (let index = step; index < dayCount - 1; index += step) {
+    indexes.add(index);
+  }
+  return [...indexes].sort((a, b) => a - b);
 }
 
 function computeDayOccupancy(
@@ -104,16 +172,6 @@ function formatChartLabel(ymd: string) {
     month: "short",
     day: "numeric",
   }).format(date);
-}
-
-function formatBookingDateTime(iso: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(iso));
 }
 
 function durationMinutes(startsAt: string, endsAt: string) {
@@ -167,14 +225,20 @@ function resolveBookingPlayerName(
 export async function getHistoryData(
   supabase: SupabaseClient<Database>,
   club: Club,
+  monthKey?: string,
 ): Promise<HistoryData> {
+  const now = new Date();
+  const { year, month } = resolveSelectedMonth(monthKey);
+  const navigation = monthNavigationKeys(year, month);
   const empty: HistoryData = {
+    ...navigation,
     stats: {
       avgOccupancyPercent: 0,
-      occupancyTrend: null,
+      prevAvgOccupancyPercent: null,
+      occupancyChangePoints: null,
       topCourtName: null,
       topCourtSubtitle: null,
-      totalBookingsThisMonth: 0,
+      totalBookings: 0,
     },
     occupancyTrend: [],
     bookings: [],
@@ -193,21 +257,17 @@ export async function getHistoryData(
   const courtIds = courts.map((court) => court.id);
   const courtMap = new Map(courts.map((court) => [court.id, court]));
   const slots = getDaySlotStartsForClub(club);
-  const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
-  const trendStart = new Date(now);
-  trendStart.setDate(trendStart.getDate() - 29);
-  trendStart.setHours(0, 0, 0, 0);
-
+  const monthStart = startOfMonth(new Date(year, month, 1));
+  const monthEnd = endOfMonth(new Date(year, month, 1));
+  const prevMonthDate = addMonths(year, month, -1);
   const prevMonthStart = startOfMonth(
-    new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    new Date(prevMonthDate.year, prevMonthDate.month, 1),
   );
   const prevMonthEnd = endOfMonth(
-    new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    new Date(prevMonthDate.year, prevMonthDate.month, 1),
   );
 
-  const [monthGamesRes, prevMonthGamesRes, trendGamesRes, recentGamesRes] =
+  const [monthGamesRes, prevMonthGamesRes, monthBookingsRes] =
     await Promise.all([
       supabase
         .from("games")
@@ -225,30 +285,24 @@ export async function getHistoryData(
         .not("status", "eq", "cancelled"),
       supabase
         .from("games")
-        .select("id, court_id, starts_at, ends_at, status")
-        .in("court_id", courtIds)
-        .gte("starts_at", trendStart.toISOString())
-        .lte("starts_at", monthEnd.toISOString())
-        .not("status", "eq", "cancelled"),
-      supabase
-        .from("games")
         .select("id, court_id, created_by_user_id, starts_at, ends_at, status")
         .in("court_id", courtIds)
+        .gte("starts_at", monthStart.toISOString())
+        .lte("starts_at", monthEnd.toISOString())
         .order("starts_at", { ascending: false })
         .limit(20),
     ]);
 
   const monthGames = (monthGamesRes.data ?? []) as RawGame[];
   const prevMonthGames = (prevMonthGamesRes.data ?? []) as RawGame[];
-  const trendGames = (trendGamesRes.data ?? []) as RawGame[];
-  const recentGames = (recentGamesRes.data ?? []) as unknown as RawGame[];
+  const monthBookings = (monthBookingsRes.data ?? []) as unknown as RawGame[];
 
-  const recentGameIds = recentGames.map((game) => game.id);
-  const playersRes = recentGameIds.length
+  const monthBookingIds = monthBookings.map((game) => game.id);
+  const playersRes = monthBookingIds.length
     ? await supabase
         .from("game_players" as never)
         .select("game_id, user_id")
-        .in("game_id", recentGameIds)
+        .in("game_id", monthBookingIds)
     : { data: [] as RawGamePlayer[] };
 
   const playersByGame = new Map<string, RawGamePlayer[]>();
@@ -259,7 +313,7 @@ export async function getHistoryData(
   }
 
   const profileUserIds = new Set<string>();
-  for (const game of recentGames) {
+  for (const game of monthBookings) {
     if (game.created_by_user_id) {
       profileUserIds.add(game.created_by_user_id);
     }
@@ -285,12 +339,7 @@ export async function getHistoryData(
     }
   }
 
-  const monthDays: string[] = [];
-  const cursor = new Date(monthStart);
-  while (cursor <= monthEnd) {
-    monthDays.push(toYmd(cursor));
-    cursor.setDate(cursor.getDate() + 1);
-  }
+  const monthDays = daysInMonth(year, month);
 
   const monthOccupancies = monthDays.map((ymd) =>
     computeDayOccupancy(monthGames, courts, slots, ymd),
@@ -303,27 +352,22 @@ export async function getHistoryData(
         )
       : 0;
 
-  const prevMonthDays: string[] = [];
-  const prevCursor = new Date(prevMonthStart);
-  while (prevCursor <= prevMonthEnd) {
-    prevMonthDays.push(toYmd(prevCursor));
-    prevCursor.setDate(prevCursor.getDate() + 1);
-  }
+  const prevMonthDays = daysInMonth(prevMonthDate.year, prevMonthDate.month);
 
   const prevMonthOccupancies = prevMonthDays.map((ymd) =>
     computeDayOccupancy(prevMonthGames, courts, slots, ymd),
   );
-  const prevAvgOccupancy =
+  const prevAvgOccupancyPercent =
     prevMonthOccupancies.length > 0
-      ? prevMonthOccupancies.reduce((sum, value) => sum + value, 0) /
-        prevMonthOccupancies.length
-      : 0;
-
-  const occupancyTrend =
-    prevAvgOccupancy > 0
       ? Math.round(
-          ((avgOccupancyPercent - prevAvgOccupancy) / prevAvgOccupancy) * 100,
+          prevMonthOccupancies.reduce((sum, value) => sum + value, 0) /
+            prevMonthOccupancies.length,
         )
+      : null;
+
+  const occupancyChangePoints =
+    prevAvgOccupancyPercent != null
+      ? avgOccupancyPercent - prevAvgOccupancyPercent
       : null;
 
   const courtBookingCounts = new Map<string, number>();
@@ -346,16 +390,14 @@ export async function getHistoryData(
 
   const topCourt = topCourtId ? courtMap.get(topCourtId) : null;
 
-  const trendDays = Array.from({ length: 30 }, (_, index) =>
-    addDays(toYmd(trendStart), index),
-  );
+  const trendDays = monthDays;
   const occupancyTrendPoints: OccupancyTrendPoint[] = trendDays.map((ymd) => ({
     ymd,
     label: formatChartLabel(ymd),
-    percent: computeDayOccupancy(trendGames, courts, slots, ymd),
+    percent: computeDayOccupancy(monthGames, courts, slots, ymd),
   }));
 
-  const bookings: BookingHistoryRow[] = recentGames
+  const bookings: BookingHistoryRow[] = monthBookings
     .filter((game): game is RawGame & { court_id: string } =>
       Boolean(game.court_id),
     )
@@ -383,15 +425,17 @@ export async function getHistoryData(
     });
 
   return {
+    ...navigation,
     stats: {
       avgOccupancyPercent,
-      occupancyTrend,
+      prevAvgOccupancyPercent,
+      occupancyChangePoints,
       topCourtName: topCourt?.name ?? null,
       topCourtSubtitle: topCourt?.environment
         ? topCourt.environment.charAt(0).toUpperCase() +
           topCourt.environment.slice(1)
         : null,
-      totalBookingsThisMonth: monthGames.length,
+      totalBookings: monthGames.length,
     },
     occupancyTrend: occupancyTrendPoints,
     bookings,
