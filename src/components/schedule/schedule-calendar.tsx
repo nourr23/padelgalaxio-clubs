@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { ScheduleDatePicker } from "@/src/components/schedule/schedule-date-picker";
@@ -9,6 +9,7 @@ import {
   getWeekSummaries,
   type ScheduleDayData,
 } from "@/src/features/schedule/queries";
+import { useScheduleRealtime } from "@/src/features/schedule/use-schedule-realtime";
 import {
   addDays,
   formatDisplayDate,
@@ -41,6 +42,12 @@ export function ScheduleCalendar({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  const courtIds = useMemo(
+    () => data.courts.map((court) => court.id),
+    [data.courts],
+  );
+  const { refreshKey, isLive } = useScheduleRealtime(club.id, courtIds);
+
   const weekDates = getWeekDates(ymd);
   const weekDatesKey = weekDates.join(",");
   const slotDuration = club.slot_duration_minutes ?? 90;
@@ -60,7 +67,7 @@ export function ScheduleCalendar({
         setWeekSummaries(summaries);
       }
     });
-  }, [club, view, ymd, weekDatesKey]);
+  }, [club, view, ymd, weekDatesKey, refreshKey]);
 
   function shiftDate(days: number) {
     setYmd((current) => addDays(current, days));
@@ -73,9 +80,20 @@ export function ScheduleCalendar({
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-display text-2xl font-semibold tracking-tight text-brand sm:text-3xl">
-          Booking Schedule
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-brand sm:text-3xl">
+            Booking Schedule
+          </h1>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
+              isLive
+                ? "bg-accent/20 text-brand-soft"
+                : "bg-field text-muted"
+            }`}
+          >
+            {isLive ? "Live" : "Syncing"}
+          </span>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center rounded-xl border border-border bg-panel p-1">
@@ -142,6 +160,7 @@ export function ScheduleCalendar({
             clubId={club.id}
             selectedYmd={ymd}
             open={pickerOpen}
+            refreshKey={refreshKey}
             onClose={() => setPickerOpen(false)}
             onSelect={(nextYmd) => {
               setYmd(nextYmd);
