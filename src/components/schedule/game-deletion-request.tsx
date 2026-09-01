@@ -54,7 +54,7 @@ export function GameDeletionRequestPanel({
         </p>
         <p className="mt-1 text-sm text-amber-800">
           Your request is pending admin review. The booking stays on the calendar
-          until an admin approves deletion.
+          until an admin approves the cancellation.
         </p>
         {deletionRequest.reason ? (
           <p className="mt-3 text-xs text-amber-800/90">
@@ -168,7 +168,7 @@ function ConfirmDialog({
           Request cancellation?
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          This sends a deletion request to an admin. The booking stays active
+          This sends a cancellation request to an admin. The booking stays active
           until approved — players are not notified automatically.
         </p>
 

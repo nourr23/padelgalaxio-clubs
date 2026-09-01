@@ -25,11 +25,11 @@ begin
   end if;
 
   if not public.is_club_manager_for_court(v_game.court_id) then
-    raise exception 'Not allowed to request deletion for this game';
+    raise exception 'Not allowed to request cancellation for this game';
   end if;
 
   if v_game.status::text not in ('open', 'full') then
-    raise exception 'This game can no longer be deleted';
+    raise exception 'This game can no longer be cancelled';
   end if;
 
   if exists (
@@ -38,7 +38,7 @@ begin
     where r.game_id = p_game_id
       and r.status = 'pending'
   ) then
-    raise exception 'A deletion request is already pending for this game';
+    raise exception 'A cancellation request is already pending for this game';
   end if;
 
   insert into public.game_deletion_requests (

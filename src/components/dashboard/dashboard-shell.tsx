@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { logout } from "@/lib/auth/actions";
+import { NotificationsBell } from "@/src/components/dashboard/notifications-bell";
 import {
-  IconBell,
   IconCalendar,
   IconCourts,
   IconDashboard,
@@ -13,13 +13,17 @@ import {
   IconHistory,
   IconSettings,
 } from "@/src/components/dashboard/icons";
+import type { ClubNotification } from "@/src/features/notifications/queries";
 
 type DashboardShellProps = {
   children: React.ReactNode;
+  userId: string;
   displayName: string;
   roleLabel: string;
   clubName: string | null;
   email: string;
+  initialNotifications: ClubNotification[];
+  initialUnreadCount: number;
 };
 
 const primaryNav = [
@@ -46,10 +50,13 @@ function isActive(pathname: string, href: string, match: "exact" | "prefix") {
 
 export function DashboardShell({
   children,
+  userId,
   displayName,
   roleLabel,
   clubName,
   email,
+  initialNotifications,
+  initialUnreadCount,
 }: DashboardShellProps) {
   const pathname = usePathname();
   const settingsActive =
@@ -148,14 +155,11 @@ export function DashboardShell({
 
       <div className="flex min-w-0 flex-col">
         <header className="flex items-center justify-end gap-1 border-b border-border bg-panel px-4 py-3 sm:gap-2 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            disabled
-            className="rounded-xl p-2.5 text-muted transition hover:bg-field disabled:opacity-60"
-            aria-label="Notifications (coming soon)"
-          >
-            <IconBell />
-          </button>
+          <NotificationsBell
+            userId={userId}
+            initialNotifications={initialNotifications}
+            initialUnreadCount={initialUnreadCount}
+          />
           <button
             type="button"
             disabled
