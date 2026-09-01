@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ClubBookingCancelPanel } from "@/src/components/schedule/club-booking-cancel";
 import { GameDeletionRequestPanel } from "@/src/components/schedule/game-deletion-request";
 import {
   formatGameDateTime,
@@ -143,12 +144,21 @@ export function GameDetailView({
           )}
         </section>
 
-        <GameDeletionRequestPanel
+        <ClubBookingCancelPanel
           clubId={clubId}
           gameId={game.id}
           gameStatus={game.status}
-          deletionRequest={deletionRequest}
+          bookedByClub={game.bookedByClub}
         />
+
+        {!game.bookedByClub ? (
+          <GameDeletionRequestPanel
+            clubId={clubId}
+            gameId={game.id}
+            gameStatus={game.status}
+            deletionRequest={deletionRequest}
+          />
+        ) : null}
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">

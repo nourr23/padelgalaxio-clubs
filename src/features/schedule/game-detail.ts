@@ -23,6 +23,7 @@ export type ClubGameDetail = {
   clubName: string;
   clubCity: string | null;
   hostName: string | null;
+  bookedByClub: boolean;
   players: ClubGamePlayer[];
 };
 
@@ -44,6 +45,7 @@ type RawGameDetail = {
   gender_category: string | null;
   notes: string | null;
   created_by_user_id: string | null;
+  booked_by_club: boolean | null;
   court: {
     id: string;
     name: string;
@@ -121,6 +123,7 @@ export async function getClubGameDetail(
       gender_category,
       notes,
       created_by_user_id,
+      booked_by_club,
       court:courts!inner(
         id,
         name,
@@ -192,7 +195,8 @@ export async function getClubGameDetail(
     courtEnvironment: game.court.environment,
     clubName: game.court.club?.name ?? "Club",
     clubCity: game.court.club?.city ?? null,
-    hostName,
+    hostName: game.booked_by_club ? "Club booking" : hostName,
+    bookedByClub: Boolean(game.booked_by_club),
     players,
   };
 }

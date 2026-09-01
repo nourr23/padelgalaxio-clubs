@@ -50,7 +50,7 @@ declare
   v_club_name text;
   v_starts_label text;
 begin
-  if new.court_id is null or new.status = 'cancelled' then
+  if new.court_id is null or new.status = 'cancelled' or new.booked_by_club then
     return new;
   end if;
 
@@ -95,7 +95,7 @@ declare
   v_club_name text;
   v_starts_label text;
 begin
-  if new.court_id is null then
+  if new.court_id is null or new.booked_by_club then
     return new;
   end if;
 

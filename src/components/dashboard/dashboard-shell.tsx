@@ -115,14 +115,12 @@ export function DashboardShell({
             Settings
           </Link>
 
-          <button
-            type="button"
-            disabled
-            className="flex w-full items-center justify-center rounded-xl bg-accent px-3 py-2.5 text-sm font-semibold text-brand opacity-80"
-            title="Coming soon"
+          <Link
+            href="/dashboard/schedule"
+            className="flex w-full items-center justify-center rounded-xl bg-accent px-3 py-2.5 text-sm font-semibold text-brand transition hover:bg-accent/90"
           >
             + New Booking
-          </button>
+          </Link>
 
           <div className="flex items-center gap-3 rounded-xl bg-white/8 px-3 py-2.5">
             <span

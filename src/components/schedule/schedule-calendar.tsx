@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import { ClubBookingSheet } from "@/src/components/schedule/club-booking-sheet";
 import { ScheduleDatePicker } from "@/src/components/schedule/schedule-date-picker";
 import {
   getScheduleForDate,
@@ -18,7 +19,9 @@ import {
   formatShortWeekday,
   getWeekDates,
   toYmd,
+  type SlotDef,
 } from "@/src/features/schedule/slots";
+import type { ScheduleCourt } from "@/src/features/schedule/queries";
 import type { Club } from "@/src/types/database";
 
 type ScheduleCalendarProps = {
@@ -41,6 +44,8 @@ export function ScheduleCalendar({
     {},
   );
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [bookingCourt, setBookingCourt] = useState<ScheduleCourt | null>(null);
+  const [bookingSlot, setBookingSlot] = useState<SlotDef | null>(null);
 
   const courtIds = useMemo(
     () => data.courts.map((court) => court.id),
@@ -201,7 +206,14 @@ export function ScheduleCalendar({
       </div>
 
       {view === "day" ? (
-        <DayGrid ymd={ymd} data={data} />
+        <DayGrid
+          ymd={ymd}
+          data={data}
+          onBookSlot={(court, slot) => {
+            setBookingCourt(court);
+            setBookingSlot(slot);
+          }}
+        />
       ) : (
         <WeekGrid
           weekDates={weekDates}
@@ -212,6 +224,18 @@ export function ScheduleCalendar({
           onOpenDay={() => setView("day")}
         />
       )}
+
+      <ClubBookingSheet
+        clubId={club.id}
+        ymd={ymd}
+        court={bookingCourt}
+        slot={bookingSlot}
+        open={bookingCourt != null && bookingSlot != null}
+        onClose={() => {
+          setBookingCourt(null);
+          setBookingSlot(null);
+        }}
+      />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -242,7 +266,15 @@ export function ScheduleCalendar({
   );
 }
 
-function DayGrid({ ymd, data }: { ymd: string; data: ScheduleDayData }) {
+function DayGrid({
+  ymd,
+  data,
+  onBookSlot,
+}: {
+  ymd: string;
+  data: ScheduleDayData;
+  onBookSlot: (court: ScheduleCourt, slot: SlotDef) => void;
+}) {
   if (!data.courts.length) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-panel px-6 py-16 text-center">
@@ -282,6 +314,7 @@ function DayGrid({ ymd, data }: { ymd: string; data: ScheduleDayData }) {
             slot={slot}
             courts={data.courts}
             cells={data.cells}
+            onBookSlot={onBookSlot}
           />
         ))}
       </div>
@@ -294,11 +327,13 @@ function SlotRow({
   slot,
   courts,
   cells,
+  onBookSlot,
 }: {
   ymd: string;
   slot: ScheduleDayData["slots"][number];
   courts: ScheduleDayData["courts"];
   cells: ScheduleDayData["cells"];
+  onBookSlot: (court: ScheduleCourt, slot: SlotDef) => void;
 }) {
   return (
     <>
@@ -331,11 +366,19 @@ function SlotRow({
             >
               <Link
                 href={`/dashboard/schedule/${cell.game.id}?from=${ymd}`}
-                className="flex h-full min-h-[72px] flex-col justify-between rounded-xl bg-brand p-3 text-white shadow-sm transition hover:bg-brand-deep"
+                className={`flex h-full min-h-[72px] flex-col justify-between rounded-xl p-3 text-white shadow-sm transition ${
+                  cell.game.bookedByClub
+                    ? "bg-brand-soft hover:bg-brand"
+                    : "bg-brand hover:bg-brand-deep"
+                }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-semibold">{cell.game.hostName}</p>
-                  {cell.game.isEvent ? (
+                  {cell.game.bookedByClub ? (
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
+                      Club
+                    </span>
+                  ) : cell.game.isEvent ? (
                     <span className="rounded-full bg-accent/25 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
                       Event
                     </span>
@@ -355,9 +398,14 @@ function SlotRow({
             key={`${court.id}-${slot.start}`}
             className="border-b border-r border-border p-2 last:border-r-0"
           >
-            <div className="flex h-full min-h-[72px] items-center justify-center rounded-xl border border-dashed border-border bg-white text-xl text-muted/50">
+            <button
+              type="button"
+              onClick={() => onBookSlot(court, slot)}
+              className="flex h-full min-h-[72px] w-full items-center justify-center rounded-xl border border-dashed border-border bg-white text-xl text-muted/50 transition hover:border-brand-soft hover:bg-field hover:text-brand"
+              aria-label={`Book ${court.name} at ${slot.start}`}
+            >
               +
-            </div>
+            </button>
           </div>
         );
       })}
