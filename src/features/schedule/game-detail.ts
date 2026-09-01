@@ -26,6 +26,14 @@ export type ClubGameDetail = {
   players: ClubGamePlayer[];
 };
 
+export type GameDeletionRequest = {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  reason: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+};
+
 type RawGameDetail = {
   id: string;
   starts_at: string;
@@ -83,8 +91,6 @@ export function formatStatusLabel(status: GameStatus | null) {
       return "Completed";
     case "cancelled":
       return "Cancelled";
-    case "draft":
-      return "Draft";
     default:
       return "Booked";
   }
@@ -189,4 +195,51 @@ export async function getClubGameDetail(
     hostName,
     players,
   };
+}
+
+type RawDeletionRequest = {
+  id: string;
+  status: string;
+  reason: string | null;
+  created_at: string;
+  resolved_at: string | null;
+};
+
+export async function getGameDeletionRequest(
+  supabase: SupabaseClient,
+  gameId: string,
+): Promise<GameDeletionRequest | null> {
+  const { data, error } = await supabase.rpc(
+    "get_game_deletion_request" as never,
+    { p_game_id: gameId } as never,
+  );
+
+  if (error || !data?.length) return null;
+
+  const row = (data as RawDeletionRequest[])[0];
+  if (
+    row.status !== "pending" &&
+    row.status !== "approved" &&
+    row.status !== "rejected"
+  ) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    status: row.status,
+    reason: row.reason,
+    createdAt: row.created_at,
+    resolvedAt: row.resolved_at,
+  };
+}
+
+export function canRequestGameDeletion(
+  status: GameStatus | null,
+  deletionRequest: GameDeletionRequest | null,
+) {
+  if (status === "cancelled" || status === "completed") return false;
+  if (deletionRequest?.status === "pending") return false;
+  if (deletionRequest?.status === "approved") return false;
+  return status === "open" || status === "full";
 }

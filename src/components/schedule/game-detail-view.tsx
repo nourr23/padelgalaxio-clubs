@@ -1,18 +1,27 @@
 import Link from "next/link";
 
+import { GameDeletionRequestPanel } from "@/src/components/schedule/game-deletion-request";
 import {
   formatGameDateTime,
   formatLevelRange,
   formatStatusLabel,
   type ClubGameDetail,
+  type GameDeletionRequest,
 } from "@/src/features/schedule/game-detail";
 
 type GameDetailViewProps = {
+  clubId: string;
   game: ClubGameDetail;
   backHref: string;
+  deletionRequest: GameDeletionRequest | null;
 };
 
-export function GameDetailView({ game, backHref }: GameDetailViewProps) {
+export function GameDetailView({
+  clubId,
+  game,
+  backHref,
+  deletionRequest,
+}: GameDetailViewProps) {
   const { date, timeRange } = formatGameDateTime(game.startsAt, game.endsAt);
   const levelRange = formatLevelRange(game.levelMin, game.levelMax);
 
@@ -133,9 +142,16 @@ export function GameDetailView({ game, backHref }: GameDetailViewProps) {
             <p className="mt-4 text-sm text-muted">No players listed yet.</p>
           )}
         </section>
+
+        <GameDeletionRequestPanel
+          clubId={clubId}
+          gameId={game.id}
+          gameStatus={game.status}
+          deletionRequest={deletionRequest}
+        />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href={backHref}
           className="inline-flex rounded-xl border border-border bg-panel px-4 py-2.5 text-sm font-semibold text-brand transition hover:bg-field"

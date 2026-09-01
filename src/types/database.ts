@@ -6,8 +6,7 @@ export type GameStatus =
   | "open"
   | "full"
   | "completed"
-  | "cancelled"
-  | "draft";
+  | "cancelled";
 
 export type Json =
   | string

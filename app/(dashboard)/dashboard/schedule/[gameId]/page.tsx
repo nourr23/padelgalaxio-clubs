@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { assertClubsAppAccess } from "@/lib/auth/assert-clubs-access";
 import { createClient } from "@/lib/supabase/server";
 import { GameDetailView } from "@/src/components/schedule/game-detail-view";
-import { getClubGameDetail } from "@/src/features/schedule/game-detail";
+import {
+  getClubGameDetail,
+  getGameDeletionRequest,
+} from "@/src/features/schedule/game-detail";
 import { toYmd } from "@/src/features/schedule/slots";
 
 export const metadata: Metadata = {
@@ -49,8 +52,17 @@ export default async function GameDetailPage({
     notFound();
   }
 
+  const deletionRequest = await getGameDeletionRequest(supabase, gameId);
+
   const backDate = from ?? toYmd(new Date(game.startsAt));
   const backHref = `/dashboard/schedule?date=${backDate}`;
 
-  return <GameDetailView game={game} backHref={backHref} />;
+  return (
+    <GameDetailView
+      clubId={club.id}
+      game={game}
+      backHref={backHref}
+      deletionRequest={deletionRequest}
+    />
+  );
 }

@@ -80,7 +80,6 @@ function gameSubtitle(status: GameStatus | null) {
   if (status === "full") return "Full session";
   if (status === "open") return "Open session";
   if (status === "completed") return "Completed";
-  if (status === "draft") return "Draft";
   return "Booked session";
 }
 
