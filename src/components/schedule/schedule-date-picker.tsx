@@ -19,6 +19,7 @@ type ScheduleDatePickerProps = {
   clubId: string;
   selectedYmd: string;
   open: boolean;
+  refreshKey?: number;
   onClose: () => void;
   onSelect: (ymd: string) => void;
 };
@@ -27,6 +28,7 @@ export function ScheduleDatePicker({
   clubId,
   selectedYmd,
   open,
+  refreshKey = 0,
   onClose,
   onSelect,
 }: ScheduleDatePickerProps) {
@@ -79,7 +81,7 @@ export function ScheduleDatePicker({
       );
       setBookingCounts(counts);
     });
-  }, [clubId, open, visibleMonth, visibleYear]);
+  }, [clubId, open, refreshKey, visibleMonth, visibleYear]);
 
   if (!open) return null;
 

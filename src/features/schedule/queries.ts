@@ -27,6 +27,7 @@ export type ScheduleGame = {
   playersLabel: string;
   subtitle: string;
   isEvent: boolean;
+  bookedByClub: boolean;
 };
 
 export type ScheduleCell =
@@ -52,6 +53,7 @@ type RawGame = {
   starts_at: string;
   ends_at: string;
   status: GameStatus | null;
+  booked_by_club: boolean;
 };
 
 type RawGamePlayer = {
@@ -80,7 +82,6 @@ function gameSubtitle(status: GameStatus | null) {
   if (status === "full") return "Full session";
   if (status === "open") return "Open session";
   if (status === "completed") return "Completed";
-  if (status === "draft") return "Draft";
   return "Booked session";
 }
 
@@ -123,13 +124,13 @@ export async function getScheduleForDate(
 
   const { data: gamesData } = await supabase
     .from("games")
-    .select("id, court_id, starts_at, ends_at, status")
+    .select("id, court_id, starts_at, ends_at, status, booked_by_club")
     .in("court_id", courtIds)
     .gte("starts_at", startIso)
     .lte("starts_at", endIso)
     .not("status", "eq", "cancelled");
 
-  const games = gamesData ?? [];
+  const games = (gamesData ?? []) as RawGame[];
   const gameIds = games.map((game) => game.id);
 
   const playersRes = gameIds.length
@@ -156,8 +157,10 @@ export async function getScheduleForDate(
         .map((player) => firstName(player.profiles?.full_name))
         .filter((name): name is string => Boolean(name));
 
-      const host =
-        (playerNames[0] ? formatInitial(playerNames[0]) : null) || "Booked";
+      const bookedByClub = Boolean(game.booked_by_club);
+      const host = bookedByClub
+        ? "Club booking"
+        : (playerNames[0] ? formatInitial(playerNames[0]) : null) || "Booked";
 
       return {
         id: game.id,
@@ -166,14 +169,16 @@ export async function getScheduleForDate(
         endsAt: game.ends_at,
         status: game.status,
         hostName: host,
-        playersLabel:
-          playerNames.length > 1
+        playersLabel: bookedByClub
+          ? "Reserved by club"
+          : playerNames.length > 1
             ? `${formatInitial(playerNames[0])} +${playerNames.length - 1}`
             : playerNames[0]
               ? formatInitial(playerNames[0])
               : "Players TBD",
-        subtitle: gameSubtitle(game.status),
-        isEvent: game.status === "full",
+        subtitle: bookedByClub ? "Club reservation" : gameSubtitle(game.status),
+        isEvent: game.status === "full" && !bookedByClub,
+        bookedByClub,
       };
     });
 

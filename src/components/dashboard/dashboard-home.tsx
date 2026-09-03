@@ -345,14 +345,12 @@ export function DashboardHome({
               Quick Actions
             </h2>
             <div className="mt-4 space-y-2.5">
-              <button
-                type="button"
-                disabled
-                title="Coming soon"
-                className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white opacity-70"
+              <Link
+                href="/dashboard/schedule"
+                className="flex w-full items-center justify-center rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-deep"
               >
                 + New Booking
-              </button>
+              </Link>
               <button
                 type="button"
                 disabled
@@ -361,15 +359,13 @@ export function DashboardHome({
               >
                 Block Court
               </button>
-              <button
-                type="button"
-                disabled
-                title="Coming soon"
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-panel px-4 py-3 text-sm font-semibold text-foreground/80 opacity-70"
+              <Link
+                href="/dashboard/promote"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-panel px-4 py-3 text-sm font-semibold text-brand transition hover:bg-field"
               >
                 <MailIcon />
-                Broadcast to Players
-              </button>
+                Promote availability
+              </Link>
             </div>
           </div>
 
