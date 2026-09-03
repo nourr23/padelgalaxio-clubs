@@ -128,6 +128,24 @@ export function IconHelp({ className }: { className?: string }) {
   );
 }
 
+export function IconPromote({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden
+    >
+      <path d="M4 11v2M6 9v6M18 8l-8 4-8-4 8-4v8l8 4 8-4V8Z" />
+      <path d="m9 12 3 1.5L15 12" />
+    </svg>
+  );
+}
+
 export function IconSave({ className }: { className?: string }) {
   return (
     <svg

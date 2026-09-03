@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,6 +12,7 @@ import {
   IconDashboard,
   IconHelp,
   IconHistory,
+  IconPromote,
   IconSettings,
 } from "@/src/components/dashboard/icons";
 import type { ClubNotification } from "@/src/features/notifications/queries";
@@ -39,6 +41,12 @@ const primaryNav = [
     href: "/dashboard/history",
     label: "History",
     icon: IconHistory,
+    match: "prefix" as const,
+  },
+  {
+    href: "/dashboard/promote",
+    label: "Promote",
+    icon: IconPromote,
     match: "prefix" as const,
   },
 ] as const;
@@ -72,13 +80,23 @@ export function DashboardShell({
   return (
     <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
       <aside className="flex flex-col bg-brand text-white lg:sticky lg:top-0 lg:h-dvh">
-        <div className="px-5 py-6">
-          <p className="font-display text-lg font-semibold tracking-tight text-white">
-            Padel Galaxio
-          </p>
-          <p className="mt-0.5 text-[10px] font-semibold tracking-[0.18em] text-white/55 uppercase">
-            Club Management
-          </p>
+        <div className="flex items-center gap-3 px-5 py-6">
+          <Image
+            src="/main-app-logo.png"
+            alt="Padel Galaxio"
+            width={40}
+            height={40}
+            className="size-10 shrink-0 rounded-xl object-contain"
+            priority
+          />
+          <div className="min-w-0 leading-tight">
+            <p className="font-display text-lg font-semibold tracking-tight text-white">
+              Padel Galaxio
+            </p>
+            <p className="mt-0.5 text-[10px] font-semibold tracking-[0.18em] text-white/55 uppercase">
+              Club Management
+            </p>
+          </div>
         </div>
 
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:pb-0">

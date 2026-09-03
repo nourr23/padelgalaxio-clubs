@@ -359,15 +359,13 @@ export function DashboardHome({
               >
                 Block Court
               </button>
-              <button
-                type="button"
-                disabled
-                title="Coming soon"
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-panel px-4 py-3 text-sm font-semibold text-foreground/80 opacity-70"
+              <Link
+                href="/dashboard/promote"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-panel px-4 py-3 text-sm font-semibold text-brand transition hover:bg-field"
               >
                 <MailIcon />
-                Broadcast to Players
-              </button>
+                Promote availability
+              </Link>
             </div>
           </div>
 
