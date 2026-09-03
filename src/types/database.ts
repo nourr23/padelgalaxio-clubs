@@ -122,6 +122,13 @@ export interface Database {
           starts_at: string;
           ends_at: string;
           status: GameStatus | null;
+          created_by_user_id: string | null;
+          booked_by_club: boolean;
+          level_min: number | null;
+          level_max: number | null;
+          gender_category: string | null;
+          notes: string | null;
+          source_type: string | null;
         };
         Insert: {
           id?: string;
@@ -129,6 +136,13 @@ export interface Database {
           starts_at: string;
           ends_at: string;
           status?: GameStatus | null;
+          created_by_user_id?: string | null;
+          booked_by_club?: boolean;
+          level_min?: number | null;
+          level_max?: number | null;
+          gender_category?: string | null;
+          notes?: string | null;
+          source_type?: string | null;
         };
         Update: {
           id?: string;
@@ -136,6 +150,13 @@ export interface Database {
           starts_at?: string;
           ends_at?: string;
           status?: GameStatus | null;
+          created_by_user_id?: string | null;
+          booked_by_club?: boolean;
+          level_min?: number | null;
+          level_max?: number | null;
+          gender_category?: string | null;
+          notes?: string | null;
+          source_type?: string | null;
         };
         Relationships: [];
       };

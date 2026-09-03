@@ -53,7 +53,7 @@ type RawGame = {
   starts_at: string;
   ends_at: string;
   status: GameStatus | null;
-  booked_by_club: boolean | null;
+  booked_by_club: boolean;
 };
 
 type RawGamePlayer = {
@@ -130,7 +130,7 @@ export async function getScheduleForDate(
     .lte("starts_at", endIso)
     .not("status", "eq", "cancelled");
 
-  const games = gamesData ?? [];
+  const games = (gamesData ?? []) as RawGame[];
   const gameIds = games.map((game) => game.id);
 
   const playersRes = gameIds.length
