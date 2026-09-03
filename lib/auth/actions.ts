@@ -32,10 +32,9 @@ export async function login(
 
   const access = await assertClubsAppAccess(supabase);
   if (!access.ok) {
+    // Same UX as wrong credentials — don’t reveal role / portal eligibility.
     if (access.reason === CLUBS_APP_ACCESS_DENIED) {
-      return {
-        error: "This account doesn’t have access to the club portal.",
-      };
+      return { error: "Invalid login credentials" };
     }
     return { error: access.reason };
   }

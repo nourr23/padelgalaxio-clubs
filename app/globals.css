@@ -10,6 +10,7 @@
   --border: #e5e7eb;
   --panel: #ffffff;
   --field: #f3f4f3;
+  --accent: #9dcf7d;
 }
 
 @theme inline {
@@ -22,6 +23,7 @@
   --color-border: var(--border);
   --color-panel: var(--panel);
   --color-field: var(--field);
+  --color-accent: var(--accent);
   --font-sans: var(--font-manrope);
   --font-display: var(--font-outfit);
 }
