@@ -12,6 +12,7 @@ import {
   IconDashboard,
   IconHelp,
   IconHistory,
+  IconPricing,
   IconPromote,
   IconSettings,
 } from "@/src/components/dashboard/icons";
@@ -31,6 +32,12 @@ type DashboardShellProps = {
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: IconDashboard, match: "exact" as const },
   { href: "/dashboard/courts", label: "Courts", icon: IconCourts, match: "prefix" as const },
+  {
+    href: "/dashboard/pricing",
+    label: "Pricing",
+    icon: IconPricing,
+    match: "prefix" as const,
+  },
   {
     href: "/dashboard/schedule",
     label: "Calendar",

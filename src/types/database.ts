@@ -47,6 +47,7 @@ export interface Database {
           slot_duration_minutes: number | null;
           first_slot_start: string | null;
           last_session_end: string | null;
+          booking_window_days: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -62,6 +63,7 @@ export interface Database {
           slot_duration_minutes?: number | null;
           first_slot_start?: string | null;
           last_session_end?: string | null;
+          booking_window_days?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -77,6 +79,7 @@ export interface Database {
           slot_duration_minutes?: number | null;
           first_slot_start?: string | null;
           last_session_end?: string | null;
+          booking_window_days?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -110,6 +113,42 @@ export interface Database {
           sort_order?: number | null;
           environment?: ClubEnvironment | null;
           is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      court_session_prices: {
+        Row: {
+          id: string;
+          court_id: string;
+          from_time: string;
+          to_time: string;
+          days_of_week: number[] | null;
+          price: number;
+          currency: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          court_id: string;
+          from_time: string;
+          to_time: string;
+          days_of_week?: number[] | null;
+          price: number;
+          currency?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          court_id?: string;
+          from_time?: string;
+          to_time?: string;
+          days_of_week?: number[] | null;
+          price?: number;
+          currency?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -169,3 +208,6 @@ export interface Database {
 }
 
 export type Club = Database["public"]["Tables"]["clubs"]["Row"];
+
+export type CourtSessionPrice =
+  Database["public"]["Tables"]["court_session_prices"]["Row"];
