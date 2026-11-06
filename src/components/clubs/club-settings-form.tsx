@@ -40,6 +40,7 @@ export function ClubSettingsForm({ club }: ClubSettingsFormProps) {
       slot_duration_minutes: club.slot_duration_minutes || 90,
       first_slot_start: (club.first_slot_start ?? "09:00").slice(0, 5),
       last_session_end: (club.last_session_end ?? "21:00").slice(0, 5),
+      booking_window_days: club.booking_window_days ?? null,
     },
   });
 
@@ -154,6 +155,36 @@ export function ClubSettingsForm({ club }: ClubSettingsFormProps) {
             {...register("last_session_end")}
           />
         </Field>
+      </div>
+
+      <hr className="border-border" />
+
+      <div className="grid gap-5 sm:grid-cols-3">
+        <Field
+          label="Booking window (days)"
+          htmlFor="booking_window_days"
+          error={errors.booking_window_days?.message}
+        >
+          <input
+            id="booking_window_days"
+            type="number"
+            min={1}
+            max={365}
+            step={1}
+            inputMode="numeric"
+            placeholder="No limit"
+            className={inputClassName}
+            {...register("booking_window_days", {
+              setValueAs: (value) =>
+                value === "" || value === null || value === undefined
+                  ? null
+                  : Number(value),
+            })}
+          />
+        </Field>
+        <p className="self-end pb-2.5 text-sm text-muted sm:col-span-2">
+          Players can book up to N days ahead. Leave empty for no limit.
+        </p>
       </div>
 
       {serverError ? (

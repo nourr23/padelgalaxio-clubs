@@ -17,7 +17,7 @@ export default async function DashboardLayout({
   const access = await assertClubsAppAccess(supabase);
 
   if (!access.ok) {
-    redirect("/login");
+    redirect("/auth/signout");
   }
 
   const metaName =

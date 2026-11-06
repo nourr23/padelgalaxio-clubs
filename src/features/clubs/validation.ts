@@ -1,9 +1,23 @@
 import { z } from "zod";
 
-const timeHmm = z
+export const timeHmm = z
   .string()
   .trim()
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM (24-hour)");
+
+/** `null` = no limit; N = today plus the next N-1 days. */
+const bookingWindowDays = z
+  .number({ message: "Enter a whole number of days" })
+  .int("Enter a whole number of days")
+  .min(1, "Must be at least 1 day")
+  .max(365, "Must be 365 days or less")
+  .nullable();
+
+export const bookingWindowSchema = z.object({
+  booking_window_days: bookingWindowDays,
+});
+
+export type BookingWindowInput = z.infer<typeof bookingWindowSchema>;
 
 export const clubSettingsSchema = z
   .object({
@@ -18,6 +32,7 @@ export const clubSettingsSchema = z
       }),
     first_slot_start: timeHmm,
     last_session_end: timeHmm,
+    booking_window_days: bookingWindowDays,
   })
   .refine(
     (data) => data.first_slot_start < data.last_session_end,
