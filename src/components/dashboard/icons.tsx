@@ -163,3 +163,21 @@ export function IconSave({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function IconPricing({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden
+    >
+      <path d="M3 12.2V4.5A1.5 1.5 0 0 1 4.5 3h7.7l8.8 8.8-9.2 9.2L3 12.2Z" />
+      <circle cx="8" cy="8" r="1.6" />
+    </svg>
+  );
+}
