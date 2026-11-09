@@ -8,6 +8,7 @@ import { logout } from "@/lib/auth/actions";
 import { NotificationsBell } from "@/src/components/dashboard/notifications-bell";
 import {
   IconCalendar,
+  IconCoaching,
   IconCourts,
   IconDashboard,
   IconHelp,
@@ -27,6 +28,7 @@ type DashboardShellProps = {
   email: string;
   initialNotifications: ClubNotification[];
   initialUnreadCount: number;
+  coachingPendingCount: number;
 };
 
 const primaryNav = [
@@ -36,6 +38,12 @@ const primaryNav = [
     href: "/dashboard/pricing",
     label: "Pricing",
     icon: IconPricing,
+    match: "prefix" as const,
+  },
+  {
+    href: "/dashboard/coaching",
+    label: "Coaching",
+    icon: IconCoaching,
     match: "prefix" as const,
   },
   {
@@ -72,6 +80,7 @@ export function DashboardShell({
   email,
   initialNotifications,
   initialUnreadCount,
+  coachingPendingCount,
 }: DashboardShellProps) {
   const pathname = usePathname();
   const settingsActive =
@@ -122,6 +131,14 @@ export function DashboardShell({
               >
                 <Icon className="shrink-0 opacity-90" />
                 {item.label}
+                {item.href === "/dashboard/coaching" && coachingPendingCount > 0 ? (
+                  <span
+                    className="ml-auto rounded-full bg-accent px-1.5 py-0.5 text-[11px] leading-none font-semibold text-brand"
+                    aria-label={`${coachingPendingCount} pending coaching requests`}
+                  >
+                    {coachingPendingCount}
+                  </span>
+                ) : null}
               </Link>
             );
           })}

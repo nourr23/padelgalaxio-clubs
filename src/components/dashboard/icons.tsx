@@ -181,3 +181,22 @@ export function IconPricing({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function IconCoaching({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden
+    >
+      <path d="M3 9.5 12 5l9 4.5-9 4.5-9-4.5Z" />
+      <path d="M7 11.5V16c0 1.4 2.2 3 5 3s5-1.6 5-3v-4.5" />
+      <path d="M21 9.5V15" />
+    </svg>
+  );
+}

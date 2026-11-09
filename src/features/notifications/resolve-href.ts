@@ -5,6 +5,8 @@ const CLUB_NOTIFICATION_TYPES = new Set([
   "club_deletion_approved",
   "club_deletion_rejected",
   "game_cancelled",
+  "club_coaching_request",
+  "club_coaching_cancelled",
 ]);
 
 export function isClubRelevantNotification(type: string) {
@@ -15,6 +17,13 @@ export function resolveNotificationHref(
   type: string,
   data: Record<string, unknown>,
 ): string | null {
+  if (type === "club_coaching_request" || type === "club_coaching_cancelled") {
+    const requestId = data.coachingRequestId;
+    return typeof requestId === "string" && requestId.length > 0
+      ? `/dashboard/coaching?request=${encodeURIComponent(requestId)}#requests`
+      : "/dashboard/coaching#requests";
+  }
+
   const gameId = data.gameId;
   if (typeof gameId === "string" && gameId.length > 0) {
     const from = data.from;

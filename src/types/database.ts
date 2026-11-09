@@ -8,6 +8,17 @@ export type GameStatus =
   | "completed"
   | "cancelled";
 
+export type CoachingPackageKind = "monthly" | "per_session";
+
+export type CoachingPriceBasis = "per_person" | "per_group";
+
+export type CoachingRequestStatus =
+  | "pending"
+  | "contacted"
+  | "confirmed"
+  | "declined"
+  | "cancelled";
+
 export type Json =
   | string
   | number
@@ -154,6 +165,156 @@ export interface Database {
         };
         Relationships: [];
       };
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          phone: string | null;
+          last_seen_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          phone?: string | null;
+          last_seen_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          phone?: string | null;
+          last_seen_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      coaching_packages: {
+        Row: {
+          id: string;
+          club_id: string;
+          kind: CoachingPackageKind;
+          title: string | null;
+          group_size: number;
+          sessions_per_month: number | null;
+          session_minutes: number | null;
+          price: number;
+          price_basis: CoachingPriceBasis;
+          currency: string;
+          description: string | null;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          kind: CoachingPackageKind;
+          title?: string | null;
+          group_size: number;
+          sessions_per_month?: number | null;
+          session_minutes?: number | null;
+          price: number;
+          price_basis: CoachingPriceBasis;
+          currency?: string;
+          description?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          kind?: CoachingPackageKind;
+          title?: string | null;
+          group_size?: number;
+          sessions_per_month?: number | null;
+          session_minutes?: number | null;
+          price?: number;
+          price_basis?: CoachingPriceBasis;
+          currency?: string;
+          description?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "coaching_packages_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      coaching_requests: {
+        Row: {
+          id: string;
+          package_id: string;
+          club_id: string;
+          player_user_id: string;
+          participants: number;
+          note: string | null;
+          status: CoachingRequestStatus;
+          club_note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          package_id: string;
+          club_id?: string;
+          player_user_id: string;
+          participants: number;
+          note?: string | null;
+          status?: CoachingRequestStatus;
+          club_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          package_id?: string;
+          club_id?: string;
+          player_user_id?: string;
+          participants?: number;
+          note?: string | null;
+          status?: CoachingRequestStatus;
+          club_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "coaching_requests_package_id_fkey";
+            columns: ["package_id"];
+            isOneToOne: false;
+            referencedRelation: "coaching_packages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coaching_requests_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coaching_requests_player_user_id_fkey";
+            columns: ["player_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       games: {
         Row: {
           id: string;
@@ -211,3 +372,9 @@ export type Club = Database["public"]["Tables"]["clubs"]["Row"];
 
 export type CourtSessionPrice =
   Database["public"]["Tables"]["court_session_prices"]["Row"];
+
+export type CoachingPackage =
+  Database["public"]["Tables"]["coaching_packages"]["Row"];
+
+export type CoachingRequest =
+  Database["public"]["Tables"]["coaching_requests"]["Row"];

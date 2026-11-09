@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { assertClubsAppAccess } from "@/lib/auth/assert-clubs-access";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardShell } from "@/src/components/dashboard/dashboard-shell";
+import { countPendingCoachingRequests } from "@/src/features/coaching/queries";
 import {
   fetchClubNotifications,
   fetchUnreadNotificationCount,
@@ -34,10 +35,14 @@ export default async function DashboardLayout({
 
   const roleLabel = access.role === "admin" ? "Admin" : "Manager";
 
-  const [initialNotifications, initialUnreadCount] = await Promise.all([
-    fetchClubNotifications(supabase, access.user.id),
-    fetchUnreadNotificationCount(supabase, access.user.id),
-  ]);
+  const [initialNotifications, initialUnreadCount, coachingPendingCount] =
+    await Promise.all([
+      fetchClubNotifications(supabase, access.user.id),
+      fetchUnreadNotificationCount(supabase, access.user.id),
+      access.club
+        ? countPendingCoachingRequests(supabase, access.club.id)
+        : Promise.resolve(0),
+    ]);
 
   return (
     <DashboardShell
@@ -48,6 +53,7 @@ export default async function DashboardLayout({
       email={access.user.email ?? ""}
       initialNotifications={initialNotifications}
       initialUnreadCount={initialUnreadCount}
+      coachingPendingCount={coachingPendingCount}
     >
       {children}
     </DashboardShell>
